@@ -1,0 +1,59 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:security="http://www.springframework.org/schema/security" 
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security.xsd">
+    
+    
+    <security:http disable-url-rewriting="true" create-session="ifRequired" 
+                    authentication-manager-ref="authenticationManager" use-expressions="true" pattern="/**">
+<!--        <security:access-denied-handler ref="accessDeniedHandlerRef" />-->
+        <security:intercept-url pattern="/register" access="isAnonymous()" />
+        <security:intercept-url pattern="/login" access="isAnonymous()" />
+        <security:intercept-url pattern="/failure" access="isAnonymous()" />
+        <security:intercept-url pattern="/admin/**" access="isAnonymous()" />
+        <security:intercept-url pattern="/forgot/password" access="isAnonymous()" />  
+        <security:intercept-url pattern="/op/forgot/changePassword" access="isAnonymous() or hasRole('ROLE_USER')" />               
+        <security:intercept-url pattern="/logout" access="isAnonymous() or hasRole('ROLE_USER')"/>
+        <security:intercept-url pattern="/isLoggedIn"   access="isAnonymous() or hasRole('ROLE_USER')" />    
+        
+        <security:intercept-url pattern="/success" access="isAnonymous() or hasRole('ROLE_USER')"></security:intercept-url> 
+        <security:form-login  username-parameter="username" password-parameter="password" login-page="/login"  />
+<!--        <security:form-login  authentication-failure-handler-ref="authenticationFailureHandler" 
+                             authentication-success-handler-ref="customAuthenticationSuccessHandler"  
+                             always-use-default-target="true"  default-target-url="/success"  
+                             username-parameter="username" password-parameter="password" login-page="/login" login-processing-url="/login"  />-->
+<!--        <security:logout logout-url="/logout"  success-handler-ref="PayuMoneyLogoutHandler"/>-->
+<!--        <security:remember-me services-ref="rememberMeServices"   />-->
+        <security:anonymous enabled="true"/>
+    </security:http>
+      
+    <security:authentication-manager id="authenticationManager">
+        <security:authentication-provider ref="authenticationProvider"/>
+<!--        <security:authentication-provider ref="rememberMeAuthenticationProvider"/>-->
+    </security:authentication-manager>
+
+    <bean id="authenticationProvider" class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">        
+        <property name="userDetailsService" ref="userDetailsService"/> 
+        <property name="saltSource" ref="saltSource" />
+    </bean>
+    
+    <bean id= "userDetailsService" class = "com.payubiz.bankplatform.security.service.PortalUserService">
+        <property name="dataSource" ref="dataSource" />
+        <property name="rolePrefix" value="ROLE_" />
+        <property name="enableGroups" value ="false"/>
+    </bean>
+    
+    <bean id="saltSource" class="org.springframework.security.authentication.dao.ReflectionSaltSource">
+            <property name="userPropertyToUse" value="salt"/>
+    </bean>
+      <bean id="dataSource"	class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="${portal.url}" />
+		<property name="username" value="${portal.username}" />
+		<property name="password" value="${portal.password}" />
+ </bean>
+                
+</beans>
